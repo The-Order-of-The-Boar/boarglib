@@ -1,2 +1,2 @@
-# boar_gamelib
+# boarglib
 game development utilities
