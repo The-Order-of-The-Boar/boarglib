@@ -1,2 +1,2 @@
 # boarglib
-game development utilities
+#### Modular game development tools for C++.
