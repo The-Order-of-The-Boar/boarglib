@@ -7,197 +7,198 @@
 #include <array>
 #include <cstdio>
 
+namespace boar {
+    class perlin_noise {
 
-class perlin_noise {
+        // all of Perlin Noise core math was based on https://github.com/Reputeless/PerlinNoise
 
-    // all of Perlin Noise core math was based on https://github.com/Reputeless/PerlinNoise
+        private:
 
-    private:
+            std::array<uint8_t, 512> p;
+            double octave_bias = 2;
 
-        std::array<uint8_t, 512> p;
-        double octave_bias = 2;
+        public:
 
-    public:
-
-        perlin_noise(uint32_t seed = 0) {
-            this->reseed(seed);
-        }
-
-        void reseed(uint32_t seed) {
-
-            for (uint16_t i = 0; i < 256; ++i) {
-                this->p[i] = static_cast<uint8_t>(i);
+            perlin_noise(uint32_t seed = 0) {
+                this->reseed(seed);
             }
 
-            std::shuffle(std::begin(this->p), std::begin(this->p) + 256, std::default_random_engine(seed));
+            void reseed(uint32_t seed) {
 
-            for (uint16_t i = 0; i < 256; ++i) {
-                this->p[256 + i] = this->p[i];
-            }
-        }
+                for (uint16_t i = 0; i < 256; ++i) {
+                    this->p[i] = static_cast<uint8_t>(i);
+                }
 
-    private:
+                std::shuffle(std::begin(this->p), std::begin(this->p) + 256, std::default_random_engine(seed));
 
-        // ############################################################################
-        // #                                                                          #
-        // #                               internals                                  #
-        // #                                                                          #
-        // ############################################################################
-
-
-        static constexpr double fade(double t) noexcept {
-            
-            return t * t * t * (t * (t * 6 - 15) + 10);
-        }
-
-        static constexpr double lerp(double t, double a, double b) noexcept {
-            
-            return a + t * (b - a);
-        }
-
-        static constexpr double grad(std::uint8_t hash, double x, double y, double z) noexcept {
-            
-            const std::uint8_t h = hash & 15;
-            const double u = h < 8 ? x : y;
-            const double v = h < 4 ? y : h == 12 || h == 14 ? x : z;
-            return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
-        }
-
-        static constexpr double weight(std::int32_t octaves) noexcept {
-            
-            double value = 0;
-            double amplitude = 1;
-
-            for (std::int32_t i = 0; i < octaves; ++i) {
-                value += amplitude;
-                amplitude /= 2;
+                for (uint16_t i = 0; i < 256; ++i) {
+                    this->p[256 + i] = this->p[i];
+                }
             }
 
-            return value;
-        }
-    
-    public:
+        private:
 
-        double raw_noise(double x = 0, double y = 0, double z = 0) const noexcept {
-            
-            const std::int32_t X = static_cast<std::int32_t>(std::floor(x)) & 255;
-            const std::int32_t Y = static_cast<std::int32_t>(std::floor(y)) & 255;
-            const std::int32_t Z = static_cast<std::int32_t>(std::floor(z)) & 255;
+            // ############################################################################
+            // #                                                                          #
+            // #                               internals                                  #
+            // #                                                                          #
+            // ############################################################################
 
-            x -= std::floor(x);
-            y -= std::floor(y);
-            z -= std::floor(z);
 
-            const double u = this->fade(x);
-            const double v = this->fade(y);
-            const double w = this->fade(z);
+            static constexpr double fade(double t) noexcept {
+                
+                return t * t * t * (t * (t * 6 - 15) + 10);
+            }
 
-            const std::int32_t A = this->p[X] + Y, AA = this->p[A] + Z, AB = this->p[A + 1] + Z;
-            const std::int32_t B = this->p[X + 1] + Y, BA = this->p[B] + Z, BB = this->p[B + 1] + Z;
+            static constexpr double lerp(double t, double a, double b) noexcept {
+                
+                return a + t * (b - a);
+            }
 
-            return this->lerp(
-                w, 
-                this->lerp(
-                    v, 
-                    this->lerp(u, this->grad(this->p[AA], x, y, z),
-                        this->grad(this->p[BA], x - 1, y, z)
+            static constexpr double grad(std::uint8_t hash, double x, double y, double z) noexcept {
+                
+                const std::uint8_t h = hash & 15;
+                const double u = h < 8 ? x : y;
+                const double v = h < 4 ? y : h == 12 || h == 14 ? x : z;
+                return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
+            }
+
+            static constexpr double weight(std::int32_t octaves) noexcept {
+                
+                double value = 0;
+                double amplitude = 1;
+
+                for (std::int32_t i = 0; i < octaves; ++i) {
+                    value += amplitude;
+                    amplitude /= 2;
+                }
+
+                return value;
+            }
+        
+        public:
+
+            double raw_noise(double x = 0, double y = 0, double z = 0) const noexcept {
+                
+                const std::int32_t X = static_cast<std::int32_t>(std::floor(x)) & 255;
+                const std::int32_t Y = static_cast<std::int32_t>(std::floor(y)) & 255;
+                const std::int32_t Z = static_cast<std::int32_t>(std::floor(z)) & 255;
+
+                x -= std::floor(x);
+                y -= std::floor(y);
+                z -= std::floor(z);
+
+                const double u = this->fade(x);
+                const double v = this->fade(y);
+                const double w = this->fade(z);
+
+                const std::int32_t A = this->p[X] + Y, AA = this->p[A] + Z, AB = this->p[A + 1] + Z;
+                const std::int32_t B = this->p[X + 1] + Y, BA = this->p[B] + Z, BB = this->p[B + 1] + Z;
+
+                return this->lerp(
+                    w, 
+                    this->lerp(
+                        v, 
+                        this->lerp(u, this->grad(this->p[AA], x, y, z),
+                            this->grad(this->p[BA], x - 1, y, z)
+                        ),
+                        this->lerp(u,
+                            this->grad(this->p[AB], x, y - 1, z),
+                            this->grad(this->p[BB], x - 1, y - 1, z)
+                        )
                     ),
-                    this->lerp(u,
-                        this->grad(this->p[AB], x, y - 1, z),
-                        this->grad(this->p[BB], x - 1, y - 1, z)
+                    this->lerp(v,
+                        this->lerp(u, 
+                            this->grad(this->p[AA + 1], x, y, z - 1),
+                            this->grad(this->p[BA + 1], x - 1, y, z - 1)
+                        ),
+                        this->lerp(u, 
+                            this->grad(this->p[AB + 1], x, y - 1, z - 1),
+                            this->grad(this->p[BB + 1], x - 1, y - 1, z - 1)
+                        )
                     )
-                ),
-                this->lerp(v,
-                    this->lerp(u, 
-                        this->grad(this->p[AA + 1], x, y, z - 1),
-                        this->grad(this->p[BA + 1], x - 1, y, z - 1)
-                    ),
-                    this->lerp(u, 
-                        this->grad(this->p[AB + 1], x, y - 1, z - 1),
-                        this->grad(this->p[BB + 1], x - 1, y - 1, z - 1)
-                    )
-                )
-            );
-        }
-    
+                );
+            }
         
-        // ############################################################################
-        // #                                                                          #
-        // #                               interfaces                                 #
-        // #                                                                          #
-        // ############################################################################
-
-
-        double noise1D(double x, double octv, double freq, double ampl) const noexcept {
             
-            x = x / freq;
-            double result = 0;
-			double amp = 1;
-			for (std::int32_t i = 0; i < octv; ++i) {
-				result += this->raw_noise(x, 0, 0) * amp;
-				x *= octave_bias;
-				amp /= octave_bias;
-			}
+            // ############################################################################
+            // #                                                                          #
+            // #                               interfaces                                 #
+            // #                                                                          #
+            // ############################################################################
 
-			return (result / this->weight(octv)) * ampl;
-        }
-        
-        double noise2D(double x, double y, double octv, double freq, double ampl) const noexcept {
+
+            double noise1D(double x, double octv, double freq, double ampl) const noexcept {
+                
+                x = x / freq;
+                double result = 0;
+                double amp = 1;
+                for (std::int32_t i = 0; i < octv; ++i) {
+                    result += this->raw_noise(x, 0, 0) * amp;
+                    x *= octave_bias;
+                    amp /= octave_bias;
+                }
+
+                return (result / this->weight(octv)) * ampl;
+            }
             
-            x = x / freq;
-            y = y / freq;
-            double result = 0;
-			double amp = 1;
-			for (std::int32_t i = 0; i < octv; ++i) {
-				result += this->raw_noise(x, y, 0) * amp;
-				x *= octave_bias;
-                y *= octave_bias;
-				amp /= octave_bias;
-			}
+            double noise2D(double x, double y, double octv, double freq, double ampl) const noexcept {
+                
+                x = x / freq;
+                y = y / freq;
+                double result = 0;
+                double amp = 1;
+                for (std::int32_t i = 0; i < octv; ++i) {
+                    result += this->raw_noise(x, y, 0) * amp;
+                    x *= octave_bias;
+                    y *= octave_bias;
+                    amp /= octave_bias;
+                }
 
-			return (result / this->weight(octv)) * ampl;
-        }
-        
-        double noise3D(double x, double y, double z, double octv, double freq, double ampl) const noexcept {
+                return (result / this->weight(octv)) * ampl;
+            }
             
-            x = x / freq;
-            y = y / freq;
-            z = z / freq;
-            double result = 0;
-			double amp = 1;
-			for (std::int32_t i = 0; i < octv; ++i) {
-				result += this->raw_noise(x, y, z) * amp;
-				x *= octave_bias;
-                y *= octave_bias;
-                z *= octave_bias;
-				amp /= octave_bias;
-			}
+            double noise3D(double x, double y, double z, double octv, double freq, double ampl) const noexcept {
+                
+                x = x / freq;
+                y = y / freq;
+                z = z / freq;
+                double result = 0;
+                double amp = 1;
+                for (std::int32_t i = 0; i < octv; ++i) {
+                    result += this->raw_noise(x, y, z) * amp;
+                    x *= octave_bias;
+                    y *= octave_bias;
+                    z *= octave_bias;
+                    amp /= octave_bias;
+                }
 
-			return (result / this->weight(octv)) * ampl;
-        }
-
-
-        // ############################################################################ 
-        // #                                                                          #
-        // #                                   I/O                                    #
-        // #                                                                          #
-        // ############################################################################
+                return (result / this->weight(octv)) * ampl;
+            }
 
 
-		void serialize(std::array<std::uint8_t, 256>& s) const noexcept {
-			for (std::size_t i = 0; i < 256; ++i)
-			{
-				s[i] = this->p[i];
-			}
-		}
+            // ############################################################################ 
+            // #                                                                          #
+            // #                                   I/O                                    #
+            // #                                                                          #
+            // ############################################################################
 
-		void deserialize(const std::array<std::uint8_t, 256>& s) noexcept {
-			for (std::size_t i = 0; i < 256; ++i)
-			{
-				this->p[256 + i] = this->p[i] = s[i];
-			}
-		}
 
-};
+            void serialize(std::array<std::uint8_t, 256>& s) const noexcept {
+                for (std::size_t i = 0; i < 256; ++i)
+                {
+                    s[i] = this->p[i];
+                }
+            }
+
+            void deserialize(const std::array<std::uint8_t, 256>& s) noexcept {
+                for (std::size_t i = 0; i < 256; ++i)
+                {
+                    this->p[256 + i] = this->p[i] = s[i];
+                }
+            }
+
+    };
+}
 
 #endif

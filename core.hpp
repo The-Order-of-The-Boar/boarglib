@@ -8,42 +8,31 @@ using std::sqrt;
 using std::pow;
 using std::atan;
 
-namespace misc{
+namespace boar {
 
-    class Vector2{
     //Mathematical Bidimensional Vector
+    class Vector2{
 
         int x;
         int y;
 
         public:
-            Vector2(int x, int y){
-                //Recieves two integers, the first one to X position and the second one to Y p
-                //position
-                
-                this->x = x;
-                this->y = y;
+            // Init vector with X and Y coordinates
+            Vector2(int x, int y): x{x}, y{y}{};
+
+            // Returns the diagonal difference 
+            auto distance_to(const Vector2& target) noexcept{
+                const auto distanceX = target.x - this->x;
+                const auto distanceY = target.y - this->y;
+                return sqrt(pow(distanceX,2) + pow(distanceY,2));                    
             }
 
-            float DistanceTo(const Vector2& target){
-                //Recieves a Vector2  target and returns the diagonal distance between this 
-                //Vector2 and the target*/
-
-                int DistX = target.x - this->x;
-                int DistY = target.y - this->y;
-                return sqrt( pow(DistX,2)+pow(DistY,2) );
-
-            }
-
-            float AngleTo(const Vector2& target){
-                //Recieves a Vector2 target and returns the angle in radians between this 
-                //Vector2 and the target 
-                
-                int DistX = target.x - this->x;
-                int DistY = target.y - this->y;
-                float tg = DistY/DistY;
+            // Returns the angle between two vectors in radians
+            auto angle_to(const Vector2& target) noexcept{
+                const auto DistX = target.x - this->x;
+                const auto DistY = target.y - this->y;
+                const auto tg = DistX/DistY;
                 return atan(tg);
-
             }
 
 
@@ -51,25 +40,19 @@ namespace misc{
 
     class Angle{
 
-        static double constexpr  PI = 3.14159265;
+        static auto constexpr PI = 3.14159265;
 
         public:
 
-            static float RadToDeg(double rad){
-                //Recieves an angle in radians and return in degrees
-                double deg = rad * (180.0/PI);
-                
-                return deg;
-
-            };
-
-            static double DegToRad(double deg){
-                //Recieves an angle in degrees and return in radians
-                double rad = deg * (PI/180.0);
-                
-                return rad;
-
-            };
+            // Returns radians in degrees
+            constexpr static auto radians_to_degrees(double rad) noexcept{
+                return rad * (180.0/PI);
+            }
+            
+            // Returns degrees in radians
+            constexpr static auto degrees_to_radians(double deg) noexcept{
+                return deg * (PI/180.0);
+            }
     };
 }
 
