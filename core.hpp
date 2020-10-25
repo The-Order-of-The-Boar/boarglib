@@ -1,10 +1,12 @@
+#ifndef BOAR_CORE
+#define BOAR_CORE
+
 
 #include <cmath>
-#include <cstdio>
 
 using std::sqrt;
 using std::pow;
-using std::ata
+using std::atan;
 
 namespace misc{
 
@@ -23,17 +25,29 @@ namespace misc{
                 this->y = y;
             }
 
-            float DistanceTo(Vector2* target){
+            float DistanceTo(const Vector2& target){
                 //Recieves a Vector2  target and returns the diagonal distance between this 
                 //Vector2 and the target*/
 
-                int DistX = target->x - this->x;
-                int DistY = target->y - this->y;
+                int DistX = target.x - this->x;
+                int DistY = target.y - this->y;
                 return sqrt( pow(DistX,2)+pow(DistY,2) );
 
             }
 
+            float AngleTo(const Vector2& target){
+                //Recieves a Vector2 target and returns the angle in radians between this 
+                //Vector2 and the target 
+                
+                int DistX = target.x - this->x;
+                int DistY = target.y - this->y;
+                float tg = DistY/DistY;
+                return atan(tg);
 
+            }
+
+
+    };
 
     class Angle{
 
@@ -59,4 +73,6 @@ namespace misc{
     };
 }
 
+
+#endif
 
