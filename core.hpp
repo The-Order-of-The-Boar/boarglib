@@ -105,8 +105,10 @@ namespace boar{
         Draw(PlotType plot_func): plot_func{plot_func}{}
         
         // Draw and line with plot_func using Bresenham's_line_algorithm
-        void line(const Vector2& init, const Vector2& end) const;
-        void line(const Vector2& init, int x_end, int y_end) const;
+        template<typename T>
+        void line(const Vector2<T>& init, const Vector2<T>& end) const;
+        template<typename T>
+        void line(const Vector2<T>& init, int x_end, int y_end) const;
         
         void circle();
     };
