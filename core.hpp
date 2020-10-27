@@ -26,50 +26,70 @@ namespace boar{
             ///////////////////////Mathematical Methods/////////////////////////////////
 
             //Returns diagonal distance between vectors
-            double DistanceTo(const Vector2& target) noexcept{
-
-                const auto DistX = target.x - this->x;
-                const auto DistY = target.y - this->y;
+            double DistanceTo(const Vector2& target) const noexcept {
+                const double DistX = (double)target.x - (double)this->x;
+                const double DistY = (double)target.y - (double)this->y;
                 return sqrt( pow(DistX,2)+pow(DistY,2) );
-
             }
             
             // Returns the angle between two vectors in radians
-            double AngleTo(const Vector2& target) noexcept{
-                
-                const auto DistX = target.x - this->x;
-                const auto DistY = target.y - this->y;
-                const double tg = (double)DistY/DistX;
-                return atan(tg);
-
+            double AngleTo(const Vector2& target) const noexcept {  
+                const double DistX = (double)target.x - (double)this->x;
+                const double DistY = (double)target.y - (double)this->y;
+                return atan(DistY/DistX);
             }
 
 
             //Returns the dot product of two vectors
-            double DotProduct(const Vector2& target) noexcept{
-                return (this->x * target.x) + (this->y * target.y);
+            double DotProduct(const Vector2& target) const noexcept {
+                return ((double)this->x * (double)target.x) + ((double)this->y * (double)target.y);
             }
 
             ///////////////////////Operators/////////////////////////////////
 
-            Vector2<Type> operator+(const Vector2<Type>& target) noexcept{
+            [[nodiscard]]
+            inline Vector2<Type> operator+(const Vector2<Type>& target) const noexcept {
                 return Vector2<Type>(this->x+target.x,this->y+target.y);
             }
 
-            Vector2<Type> operator-(const Vector2<Type>& target) noexcept{
+            [[nodiscard]]
+            inline Vector2<Type> operator-(const Vector2<Type>& target) const noexcept {
                 return Vector2<Type>(this->x-target.x,this->y-target.y);
             }
 
-            Vector2<Type> operator*(const Vector2<Type>& target) noexcept{
+            [[nodiscard]]
+            inline Vector2<Type> operator*(const Vector2<Type>& target) noexcept {
                 return Vector2<Type>(this->x*target.x,this->y*target.y);
             }
 
-            Vector2<Type> operator/(const Vector2<Type>& target) noexcept{
+            [[nodiscard]]
+            inline Vector2<Type> operator/(const Vector2<Type>& target) noexcept {
                 return Vector2<Type>(this->x/target.x,this->y/target.y);
             }
 
+            inline Vector2<Type>& operator+=(const Vector2<Type>& other) noexcept {
+                this->x += other.x;
+                this->y += other.y;
+                return *this;
+            }
+            
+            inline Vector2<Type>& operator-=(const Vector2<Type>& other) noexcept {
+                this->x -= other.x;
+                this->y -= other.y;
+                return *this;
+            }
 
+            inline Vector2<Type>& operator*=(const Vector2<Type>& other) noexcept {
+                this->x *= other.x;
+                this->y *= other.y;
+                return *this;
+            }
 
+            inline Vector2<Type>& operator/=(const Vector2<Type>& other) noexcept {
+                this->x /= other.x;
+                this->y /= other.y;
+                return *this;
+            }
 
     };
 
@@ -79,21 +99,17 @@ namespace boar{
 
         public:
             // Returns radians in degrees
-            constexpr static double RadToDeg(double rad){
+            constexpr static double RadToDeg(double rad) noexcept {
                 //Recieves an angle in radians and return in degrees
                 double deg = rad * (180.0/PI);
-                
                 return deg;
-
             };
 
             // Returns degrees in radians
-            constexpr static double DegToRad(double deg){
+            constexpr static double DegToRad(double deg) noexcept {
                 //Recieves an angle in degrees and return in radians
                 double rad = deg * (PI/180.0);
-                
                 return rad;
-
             };
     };
 }
