@@ -20,7 +20,7 @@ clean:
 dist: clean
 	mkdir -p boarglib-$(VERSION)
 	cp -R LICENSE Makefile config.mk\
-	README  $(SRC)   boarglib-$(VERSION)
+	 README.md $(SRC)   boarglib-$(VERSION)
 	tar hcf boarglib-$(VERSION).tar boarglib-$(VERSION)
 	gzip boarglib-$(VERSION).tar
 	rm -rf boarglib-$(VERSION)

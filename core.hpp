@@ -3,6 +3,7 @@
 
 
 #include <cmath>
+#include <functional>
 
 using std::sqrt;
 using std::pow;
@@ -112,6 +113,24 @@ namespace boar{
                 return rad;
             };
     };
+
+
+    class Draw{
+    public:
+        // Receives a function with two int arguments and returns nothing to draw
+        using PlotType = std::function<void (int,int)>;   
+        PlotType plot_func;
+        Draw(PlotType plot_func): plot_func{plot_func}{}
+        
+        // Draw and line with plot_func using Bresenham's_line_algorithm
+        template<typename T>
+        void line(const Vector2<T>& init, const Vector2<T>& end) const;
+        template<typename T>
+        void line(const Vector2<T>& init, int x_end, int y_end) const;
+        
+        void circle();
+    };
+
 }
 
 
