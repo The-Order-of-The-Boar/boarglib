@@ -100,15 +100,13 @@ namespace boar{
 
         public:
             // Returns radians in degrees
-            constexpr static double RadToDeg(double rad) noexcept {
-                //Recieves an angle in radians and return in degrees
+            constexpr static double RadToDeg(const double rad) noexcept {
                 double deg = rad * (180.0/PI);
                 return deg;
             };
 
             // Returns degrees in radians
-            constexpr static double DegToRad(double deg) noexcept {
-                //Recieves an angle in degrees and return in radians
+            constexpr static double DegToRad(const double deg) noexcept {
                 double rad = deg * (PI/180.0);
                 return rad;
             };
