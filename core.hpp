@@ -21,7 +21,7 @@ namespace boar {
             Vector2(int x, int y): x{x}, y{y}{};
 
             // Returns the diagonal difference 
-            auto distance_to(const Vector2& target) noexcept{
+            auto distance_to(const Vector2& target) const noexcept{
                 const auto distanceX = target.x - this->x;
                 const auto distanceY = target.y - this->y;
                 return sqrt(pow(distanceX,2) + pow(distanceY,2));                    
@@ -31,8 +31,12 @@ namespace boar {
             auto angle_to(const Vector2& target) noexcept{
                 const auto DistX = target.x - this->x;
                 const auto DistY = target.y - this->y;
-                const auto tg = DistX/DistY;
+                const auto tg = DistY/DistX;
                 return atan(tg);
+            }
+
+            auto dot_product(const Vector2& target){
+                return (this->x * target.x) + (this->y * target.y);
             }
 
 
