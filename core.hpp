@@ -80,7 +80,6 @@ namespace boar{
         public:
             // Returns radians in degrees
             constexpr static double RadToDeg(double rad){
-                //Recieves an angle in radians and return in degrees
                 double deg = rad * (180.0/PI);
                 
                 return deg;
@@ -89,7 +88,6 @@ namespace boar{
 
             // Returns degrees in radians
             constexpr static double DegToRad(double deg){
-                //Recieves an angle in degrees and return in radians
                 double rad = deg * (PI/180.0);
                 
                 return rad;
