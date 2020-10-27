@@ -8,6 +8,7 @@
 #include <cstdio>
 
 namespace boar {
+    
     class perlin_noise {
 
         // all of Perlin Noise core math was based on https://github.com/Reputeless/PerlinNoise
@@ -44,18 +45,20 @@ namespace boar {
             // #                                                                          #
             // ############################################################################
 
-
-            static constexpr double fade(double t) noexcept {
+            [[nodiscard]]
+            static constexpr double fade(const double t) noexcept {
                 
                 return t * t * t * (t * (t * 6 - 15) + 10);
             }
 
-            static constexpr double lerp(double t, double a, double b) noexcept {
+            [[nodiscard]]
+            static constexpr double lerp(const double t, const double a, const double b) noexcept {
                 
                 return a + t * (b - a);
             }
 
-            static constexpr double grad(std::uint8_t hash, double x, double y, double z) noexcept {
+            [[nodiscard]]
+            static constexpr double grad(const std::uint8_t hash, const double x, const double y, const double z) noexcept {
                 
                 const std::uint8_t h = hash & 15;
                 const double u = h < 8 ? x : y;
@@ -63,7 +66,8 @@ namespace boar {
                 return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
             }
 
-            static constexpr double weight(std::int32_t octaves) noexcept {
+            [[nodiscard]]
+            static constexpr double weight(const std::int32_t octaves) noexcept {
                 
                 double value = 0;
                 double amplitude = 1;
@@ -78,6 +82,7 @@ namespace boar {
         
         public:
 
+            [[nodiscard]]
             double raw_noise(double x = 0, double y = 0, double z = 0) const noexcept {
                 
                 const std::int32_t X = static_cast<std::int32_t>(std::floor(x)) & 255;
@@ -127,8 +132,8 @@ namespace boar {
             // #                                                                          #
             // ############################################################################
 
-
-            double noise1D(double x, double octv, double freq, double ampl) const noexcept {
+            [[nodiscard]]
+            double noise1D(double x, const double octv, const double freq, double ampl) const noexcept {
                 
                 x = x / freq;
                 double result = 0;
@@ -142,7 +147,8 @@ namespace boar {
                 return (result / this->weight(octv)) * ampl;
             }
             
-            double noise2D(double x, double y, double octv, double freq, double ampl) const noexcept {
+            [[nodiscard]]
+            double noise2D(double x, double y, const double octv, const double freq, double ampl) const noexcept {
                 
                 x = x / freq;
                 y = y / freq;
@@ -158,7 +164,8 @@ namespace boar {
                 return (result / this->weight(octv)) * ampl;
             }
             
-            double noise3D(double x, double y, double z, double octv, double freq, double ampl) const noexcept {
+            [[nodiscard]]
+            double noise3D(double x, double y, double z, const double octv, const double freq, double ampl) const noexcept {
                 
                 x = x / freq;
                 y = y / freq;
