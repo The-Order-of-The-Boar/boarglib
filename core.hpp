@@ -10,9 +10,9 @@ using std::pow;
 using std::atan;
 
 namespace boar{
-
-    template<typename Type>
+    
     //Mathematical Bidimensional Vector
+    template<typename Type>
     class Vector2{
 
 
@@ -46,7 +46,24 @@ namespace boar{
                 return ((double)this->x * (double)target.x) + ((double)this->y * (double)target.y);
             }
 
+            [[nodiscard]]
+            inline Vector2<Type> GetDelta(const Vector2<Type>& other) const noexcept {
+                return Vector2<Type> {abs(this->x - other.x), abs(this->y - other.y)};
+            }
+
             ///////////////////////Operators/////////////////////////////////
+
+            [[nodiscard]]
+            inline bool operator==(const Vector2<Type>& other) const noexcept {
+                return ((this->x == other.x) && (this->y == other.y));
+            }
+
+            [[nodiscard]]
+            inline bool operator!=(const Vector2<Type>& other) const noexcept {
+                return ((this->x != other.x) || (this->y != other.y));
+            }
+
+
 
             [[nodiscard]]
             inline Vector2<Type> operator+(const Vector2<Type>& target) const noexcept {
@@ -93,6 +110,10 @@ namespace boar{
             }
 
     };
+
+    typedef Vector2<int32_t> Vector2i;
+    typedef Vector2<uint32_t> Vector2ui;
+    typedef Vector2<double>  Vector2f;
 
     class Angle{
 

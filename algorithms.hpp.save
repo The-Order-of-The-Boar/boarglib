@@ -57,13 +57,13 @@ namespace boar {
 
             bool at_side = false;
 
-            const std::function<bool(Vector2i)> extern_validade_tile;
+            const std::function<bool(Vector2ui)> extern_validade_tile;
 
 
         public:
 
             A_Star (bool diagonal_move, uint32_t map_size_x, uint32_t map_size_y,
-                    std::function<bool(Vector2i)> extern_validade_tile)
+                    std::function<bool(Vector2ui)> extern_validade_tile)
             : diagonal_move(diagonal_move), MAP_SIZE_X(map_size_x), MAP_SIZE_Y(map_size_y),
               extern_validade_tile(extern_validade_tile) {
 
@@ -87,9 +87,9 @@ namespace boar {
                 std::vector<Vector2ui> result;
 
                 {
-                    uint8_t i = 0;
+                    int i = 0;
                     for (; i < this->directions.size(); i ++) {
-                        if (this->validate_neighbor(add_ui_i(start, {0, 0}))) {
+                        if (this->validate_neighbor(start)) {
                             break;
                         }
                     }
@@ -100,15 +100,6 @@ namespace boar {
 
                 std::vector<Node*> open_list;
                 std::vector<Node*> closed_list;
-
-                auto node_in_list = [](std::vector<Node*> list, Vector2ui& node) {
-                    for (auto& nd: list) {
-                        if (nd->pos == node) {
-                            return true;
-                        }
-                    }
-                    return false;
-                };
 
                 {
                     Node* start_node = new Node(start, true, nullptr);
@@ -129,131 +120,59 @@ namespace boar {
                     open_list.erase(open_list.begin());
                     closed_list.push_back(current);
 
-                    this->current = &current->pos;
-
-                    if (current->pos == target) {
+                    if (abs(current->pos.x - target.x) == 0 && abs(current->pos.y - target.x) == 0) {
                         while (true) {
                             if (current->root) {
-                                if (!this->at_side)
+                                if (!this->at_side) {
                                     result.push_back(current->pos);
-                                success = true;
-                                goto end;
+                                }
+                                return {};
                             }
                             else {
-                                result.insert(result.begin(), current->pos);
+                                result_path.insert(result_path.begin(), {current->x, current->y});
                                 current = current->parent;
                             }
                         }
                     }
-                    
-                    Vector2ui neighbor_pos {0, 0};
-                    Node* neighbor = nullptr;
 
-                    for (uint8_t i = 0; i < this->directions.size(); i++) {
-                        
-                        if (!this->validate_neighbor(this->add_ui_i(current->pos, this->directions[i]))) {
-                            continue;
-                        }
-
-                        neighbor_pos = this->add_i_ui(current->pos, this->directions[i]);
-                        if (node_in_list(closed_list, neighbor_pos)) {
-                            continue;
-                        }
-
-                        else if (node_in_list(open_list, neighbor_pos)) {
-
-                            for (auto& nd: open_list) {
-                                if (nd->pos == neighbor_pos) {
-                                    neighbor = nd;
-                                }
-                            }
-
-                            uint8_t mov_cost = this->ORTHOGONAL_COST;
-                            if (this->diagonal_move) {
-                                if (current->pos.x != neighbor->pos.x || current->pos.y != neighbor->pos.y) {
-                                    mov_cost = DIAGONAL_COST;
-                                }
-                            }
-
-                            uint8_t better_g = current->g + mov_cost;
-                            if (better_g < neighbor->g) {
-                                neighbor->parent = current;
-                                neighbor->g = better_g;
-                            }
-
-                        }
-
-                        else {
-
-                            neighbor = new Node{neighbor_pos, false, current};
-                            neighbor->h = this->calculate_h(*neighbor);
-                            neighbor->g = this->calculate_g(*current, *neighbor);
-                            open_list.push_back(neighbor);
-                            neighbor = nullptr;
-
-                        }
-                    }
                 }
-
-                end:;
-
-                for (auto& nd: open_list)
-                    delete nd;
-                for (auto& nd: closed_list)
-                    delete nd;
-
-                if (success)
-                    return {result};
-                else
-                    return {};
 
             }
 
         private:
 
-            inline uint32_t calculate_h(const Node& node) const noexcept {
+            inline uint32_t calculate_h(Node& node) const noexcept {
 
                 Vector2ui delta = node.pos.GetDelta(*this->target);
                 if (this->diagonal_move) {
                     // euclidean
-                    return (10 * sqrt(pow(delta.x, 2) + pow(delta.y, 2)));
+                    return node.h = (10 * sqrt(pow(delta.x, 2) + pow(delta.y, 2)));
                 }
                 else {
                     // manhattan
-                    return (10 * (delta.x + delta.y));
+                    return node.h = (10 * (delta.x + delta.y));
                 }
             }
 
             [[nodiscard]]
-            inline uint8_t calculate_g(const Node& curr, const Node& node) const noexcept {
+            inline uint8_t calculate_g(const Node& node) const noexcept {
 
-                if (this->diagonal_move && (node.pos.x == curr.pos.x || node.pos.y == curr.pos.y)) {
-                    return this->ORTHOGONAL_COST + curr.g;
+                if (this->diagonal_move && (node.pos.x == this->current->x || node.pos.y == this->current->y)) {
+                    return this->ORTHOGONAL_COST;
                 }
                 else {
-                    return this->DIAGONAL_COST + curr.g;
+                    return this->DIAGONAL_COST;
                 }
             }
     
             [[nodiscard]]
-            inline bool validate_neighbor(Vector2i pos) const noexcept {
+            inline bool validate_neighbor(Vector2ui pos) const noexcept {
 
-                if (pos.x < 0 || (uint32_t)pos.x == this->MAP_SIZE_X || pos.y < 0 || (uint32_t)pos.y == MAP_SIZE_Y) {
+                if (pos.x < 0 || pos.x == this->MAP_SIZE_X || pos.y < 0 || pos.y == MAP_SIZE_Y) {
                     return false;
                 }
                 return this->extern_validade_tile(pos);
             }
-
-            [[nodiscard]]
-            inline Vector2i add_ui_i(const Vector2ui& a, const Vector2i& b) {
-                return Vector2i {(int)a.x + b.x, (int)a.y + b.y};
-            }
-            
-            [[nodiscard]]
-            inline Vector2ui add_i_ui(const Vector2ui& a, const Vector2i& b) {
-                return Vector2ui {a.x + (uint32_t)b.x, a.y + (uint32_t)b.y};
-            }
-    
     };
 
 
