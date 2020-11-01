@@ -18,6 +18,8 @@ namespace boar{
 
         public:
 
+            
+
             Type x;
             Type y;
 
@@ -46,6 +48,20 @@ namespace boar{
                 return ((double)this->x * (double)target.x) + ((double)this->y * (double)target.y);
             }
 
+            //Returns the magnitude of the Vector2
+            [[nodiscard]]
+            inline double Magnitude() const noexcept{
+                return this->DistanceTo(Vector2<Type>{0,0});
+            }
+
+            //Returns the Vector2 normalized
+            [[nodiscard]]
+            inline Vector2<double> Normalized() const noexcept{
+                const auto magnitude = this->Magnitude();
+                return Vector2<double>{this->x/magnitude, this->y/magnitude};
+
+            }
+
             [[nodiscard]]
             inline Vector2<Type> GetDelta(const Vector2<Type>& other) const noexcept {
                 return Vector2<Type> {abs(this->x - other.x), abs(this->y - other.y)};
@@ -63,8 +79,6 @@ namespace boar{
                 return ((this->x != other.x) || (this->y != other.y));
             }
 
-
-
             [[nodiscard]]
             inline Vector2<Type> operator+(const Vector2<Type>& target) const noexcept {
                 return Vector2<Type>(this->x+target.x,this->y+target.y);
@@ -76,38 +90,39 @@ namespace boar{
             }
 
             [[nodiscard]]
-            inline Vector2<Type> operator*(const Vector2<Type>& target) noexcept {
+            inline Vector2<Type> operator*(const Vector2<Type>& target) const  noexcept {
                 return Vector2<Type>(this->x*target.x,this->y*target.y);
             }
 
             [[nodiscard]]
-            inline Vector2<Type> operator/(const Vector2<Type>& target) noexcept {
+            inline Vector2<Type> operator/(const Vector2<Type>& target) const noexcept {
                 return Vector2<Type>(this->x/target.x,this->y/target.y);
             }
 
-            inline Vector2<Type>& operator+=(const Vector2<Type>& other) noexcept {
+            inline Vector2<Type>& operator+=(const Vector2<Type>& other) const noexcept {
                 this->x += other.x;
                 this->y += other.y;
                 return *this;
             }
             
-            inline Vector2<Type>& operator-=(const Vector2<Type>& other) noexcept {
+            inline Vector2<Type>& operator-=(const Vector2<Type>& other) const noexcept {
                 this->x -= other.x;
                 this->y -= other.y;
                 return *this;
             }
 
-            inline Vector2<Type>& operator*=(const Vector2<Type>& other) noexcept {
+            inline Vector2<Type>& operator*=(const Vector2<Type>& other) const noexcept {
                 this->x *= other.x;
                 this->y *= other.y;
                 return *this;
             }
 
-            inline Vector2<Type>& operator/=(const Vector2<Type>& other) noexcept {
+            inline Vector2<Type>& operator/=(const Vector2<Type>& other) const noexcept {
                 this->x /= other.x;
                 this->y /= other.y;
                 return *this;
             }
+            
 
     };
 
@@ -131,6 +146,7 @@ namespace boar{
                 double rad = deg * (PI/180.0);
                 return rad;
             };
+
     };
 
 
