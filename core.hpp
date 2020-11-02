@@ -15,10 +15,7 @@ namespace boar{
     template<typename Type>
     class Vector2{
 
-
         public:
-
-            
 
             Type x;
             Type y;
@@ -123,6 +120,20 @@ namespace boar{
                 return *this;
             }
             
+            ///////////////////////cast/////////////////////////////////
+
+            inline operator Vector2<double>() const noexcept {
+                return Vector2<double>{(double)this->x, (double)this->y};
+            }
+
+            inline operator Vector2<int32_t>() const noexcept {
+                return Vector2<int32_t>{(int32_t)this->x, (int32_t)this->y};
+            }
+
+            inline operator Vector2<uint32_t>() const noexcept {
+                return Vector2<uint32_t>{(uint32_t)this->x, (uint32_t)this->y};
+            }
+
 
     };
 
