@@ -17,6 +17,12 @@ namespace boar {
 
     class A_Star {
 
+        enum class node_state {
+            open,
+            closed,
+            none
+        };
+
         class Node {
 
             public:
@@ -25,6 +31,8 @@ namespace boar {
                 uint32_t h;
                 uint8_t g;
 
+                node_state state;
+
                 bool root;
                 Node* parent;
 
@@ -32,6 +40,7 @@ namespace boar {
                 : pos(pos), root(root), parent(parent) {
                     g = 0;
                     h = 0;
+                    this->state = node_state::none;
                 }
 
                 [[nodiscard]]
@@ -58,7 +67,7 @@ namespace boar {
             bool at_side;
             bool add_target_to_result;
 
-            const std::function<bool(Vector2i)> extern_validade_tile;
+            const std::function<bool(Vector2i&)> extern_validade_tile;
 
             vector<vector<Node*>> internal_nodes;
 
@@ -66,7 +75,7 @@ namespace boar {
         public:
 
             A_Star (bool diagonal_move, uint32_t map_size_x, uint32_t map_size_y,
-                    std::function<bool(Vector2i)> extern_validade_tile)
+                    std::function<bool(Vector2i&)> extern_validade_tile)
             : diagonal_move(diagonal_move), MAP_SIZE_X(map_size_x), 
               MAP_SIZE_Y(map_size_y), extern_validade_tile(extern_validade_tile) {
 
@@ -132,19 +141,12 @@ namespace boar {
                 std::vector<Node*> open_list;
                 std::vector<Node*> closed_list;
 
-                auto node_in_list = [](std::vector<Node*> list, Vector2ui& node) {
-                    for (auto& nd: list) {
-                        if (nd->pos == node) {
-                            return true;
-                        }
-                    }
-                    return false;
-                };
-
                 {
                     Node* start_node = this->get_node(start, true, nullptr);
                     start_node->g = 0;
                     this->calculate_h(*start_node);
+                    
+                    start_node->state = node_state::open;
                     open_list.push_back(start_node);
                 }
 
@@ -157,8 +159,10 @@ namespace boar {
                     );
 
                     Node* current = open_list.at(0);
-                    open_list.erase(open_list.begin());
+                    current->state = node_state::closed;
                     closed_list.push_back(current);
+                    open_list.erase(open_list.begin());
+
 
                     this->current = &current->pos;
 
@@ -178,6 +182,7 @@ namespace boar {
 
                         if (this->at_side && poss_neighbor_pos == target) { 
                             if (this->diagonal_move || current->pos.OrthogonalTo(poss_neighbor_pos)) {
+                                
                                 result = this->get_path(current);
                                 if (this->add_target_to_result) {
                                     result.push_back(target);
@@ -192,38 +197,41 @@ namespace boar {
                         }
 
                         neighbor_pos = poss_neighbor_pos;
-                        if (node_in_list(closed_list, neighbor_pos)) {
-                            continue;
+
+                        if (this->internal_nodes[neighbor_pos.x][neighbor_pos.y] != nullptr) {
+
+                            if (this->internal_nodes[neighbor_pos.x][neighbor_pos.y]->state == node_state::closed) {
+                                continue;
+                            }
+
+                            else if (this->internal_nodes[neighbor_pos.x][neighbor_pos.y]->state == node_state::open) {
+
+                                neighbor = this->internal_nodes[neighbor_pos.x][neighbor_pos.y];
+
+                                uint8_t mov_cost = this->ORTHOGONAL_COST;
+                                if (this->diagonal_move) {
+                                    if (current->pos.DiagonalTo(neighbor->pos)) {
+                                        mov_cost = DIAGONAL_COST;
+                                    }
+                                }
+
+                                uint8_t better_g = current->g + mov_cost;
+                                if (better_g < neighbor->g) {
+                                    neighbor->parent = current;
+                                    neighbor->g = better_g;
+                                }
+
+                            }
                         }
 
-                        else if (node_in_list(open_list, neighbor_pos)) {
-
-                            for (auto& nd: open_list) {
-                                if (nd->pos == neighbor_pos) {
-                                    neighbor = nd;
-                                }
-                            }
-
-                            uint8_t mov_cost = this->ORTHOGONAL_COST;
-                            if (this->diagonal_move) {
-                                if (current->pos.x != neighbor->pos.x || current->pos.y != neighbor->pos.y) {
-                                    mov_cost = DIAGONAL_COST;
-                                }
-                            }
-
-                            uint8_t better_g = current->g + mov_cost;
-                            if (better_g < neighbor->g) {
-                                neighbor->parent = current;
-                                neighbor->g = better_g;
-                            }
-
-                        }
-
-                        else {
+                        if (this->internal_nodes[neighbor_pos.x][neighbor_pos.y] == nullptr ||
+                            this->internal_nodes[neighbor_pos.x][neighbor_pos.y]->state == node_state::none) {
 
                             neighbor = this->get_node(neighbor_pos, false, current);
                             neighbor->h = this->calculate_h(*neighbor);
                             neighbor->g = this->calculate_g(*current, *neighbor);
+                            
+                            neighbor->state = node_state::open;
                             open_list.push_back(neighbor);
                             neighbor = nullptr;
                         }
@@ -231,6 +239,13 @@ namespace boar {
                 }
 
                 end:;
+
+                for (auto& i: open_list) {
+                    i->state = node_state::none;
+                }
+                for (auto& i: closed_list) {
+                    i->state = node_state::none;
+                }
 
                 if (success)
                     return {result};
@@ -289,6 +304,7 @@ namespace boar {
                     node->parent = parent;
                     node->root = root;
                     node->pos = pos;
+                    node->state = node_state::none;
                     return node;
                 }
                 else {
