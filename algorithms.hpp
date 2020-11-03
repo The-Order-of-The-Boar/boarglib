@@ -55,17 +55,23 @@ namespace boar {
             const uint32_t MAP_SIZE_X;
             const uint32_t MAP_SIZE_Y;
 
-            bool at_side = false;
+            bool at_side;
+            bool add_target_to_result;
 
             const std::function<bool(Vector2i)> extern_validade_tile;
+
+            vector<vector<Node*>> internal_nodes;
 
 
         public:
 
             A_Star (bool diagonal_move, uint32_t map_size_x, uint32_t map_size_y,
                     std::function<bool(Vector2i)> extern_validade_tile)
-            : diagonal_move(diagonal_move), MAP_SIZE_X(map_size_x), MAP_SIZE_Y(map_size_y),
-              extern_validade_tile(extern_validade_tile) {
+            : diagonal_move(diagonal_move), MAP_SIZE_X(map_size_x), 
+              MAP_SIZE_Y(map_size_y), extern_validade_tile(extern_validade_tile) {
+
+                  this->at_side = false;
+                  this->add_target_to_result = false;
 
                 this->directions.push_back({0, -1});
                 this->directions.push_back({1, 0});
@@ -78,6 +84,31 @@ namespace boar {
                     this->directions.push_back({-1, -1});
                     this->directions.push_back({-1, 1});
                 }
+
+                this->internal_nodes.resize(this->MAP_SIZE_X);
+                for (auto& i: this->internal_nodes) {
+                    i.resize(this->MAP_SIZE_Y);
+                }
+                for (auto& i: this->internal_nodes) {
+                    for (uint32_t j = 0; j < this->MAP_SIZE_Y; j++) {
+                        i[j] = nullptr;
+                    }
+                }
+            }
+
+            ~A_Star() {
+                for (auto& i: this->internal_nodes) {
+                    for (auto& j: i) {
+                        if (j != nullptr) {
+                            delete j;
+                        }
+                    }
+                }
+            }
+
+            void set_at_side(bool at_side, bool add_target_to_result) noexcept {
+                this->at_side = at_side;
+                this->add_target_to_result = add_target_to_result;
             }
 
             std::optional<vector<Vector2ui>> find(Vector2ui start, Vector2ui target) noexcept {
@@ -89,7 +120,7 @@ namespace boar {
                 {
                     uint8_t i = 0;
                     for (; i < this->directions.size(); i ++) {
-                        if (this->validate_neighbor(add_ui_i(start, {0, 0}))) {
+                        if (this->validate_neighbor((Vector2i)target + this->directions[i])) {
                             break;
                         }
                     }
@@ -111,7 +142,7 @@ namespace boar {
                 };
 
                 {
-                    Node* start_node = new Node(start, true, nullptr);
+                    Node* start_node = this->get_node(start, true, nullptr);
                     start_node->g = 0;
                     this->calculate_h(*start_node);
                     open_list.push_back(start_node);
@@ -132,30 +163,35 @@ namespace boar {
                     this->current = &current->pos;
 
                     if (current->pos == target) {
-                        while (true) {
-                            if (current->root) {
-                                if (!this->at_side)
-                                    result.push_back(current->pos);
-                                success = true;
-                                goto end;
-                            }
-                            else {
-                                result.insert(result.begin(), current->pos);
-                                current = current->parent;
-                            }
-                        }
+                        result = this->get_path(current);
+                        success = true;
+                        goto end;
                     }
                     
                     Vector2ui neighbor_pos {0, 0};
+                    Vector2i poss_neighbor_pos {0, 0};
                     Node* neighbor = nullptr;
 
                     for (uint8_t i = 0; i < this->directions.size(); i++) {
                         
-                        if (!this->validate_neighbor(this->add_ui_i(current->pos, this->directions[i]))) {
+                        poss_neighbor_pos = current->pos + this->directions[i];
+
+                        if (this->at_side && poss_neighbor_pos == target) { 
+                            if (this->diagonal_move || current->pos.OrthogonalTo(poss_neighbor_pos)) {
+                                result = this->get_path(current);
+                                if (this->add_target_to_result) {
+                                    result.push_back(target);
+                                }
+                                success = true;
+                                goto end;
+                            } 
+                        }
+
+                        if (!this->validate_neighbor(poss_neighbor_pos)) {
                             continue;
                         }
 
-                        neighbor_pos = this->add_i_ui(current->pos, this->directions[i]);
+                        neighbor_pos = poss_neighbor_pos;
                         if (node_in_list(closed_list, neighbor_pos)) {
                             continue;
                         }
@@ -185,22 +221,16 @@ namespace boar {
 
                         else {
 
-                            neighbor = new Node{neighbor_pos, false, current};
+                            neighbor = this->get_node(neighbor_pos, false, current);
                             neighbor->h = this->calculate_h(*neighbor);
                             neighbor->g = this->calculate_g(*current, *neighbor);
                             open_list.push_back(neighbor);
                             neighbor = nullptr;
-
                         }
                     }
                 }
 
                 end:;
-
-                for (auto& nd: open_list)
-                    delete nd;
-                for (auto& nd: closed_list)
-                    delete nd;
 
                 if (success)
                     return {result};
@@ -211,9 +241,25 @@ namespace boar {
 
         private:
 
+            vector<Vector2ui> get_path(Node* curr) const noexcept {
+
+                vector<Vector2ui> result;
+                while (true) {
+                    if (curr->root) {
+                        return result;
+                    }
+                    else {
+                        result.insert(result.begin(), curr->pos);
+                        curr = curr->parent;
+                    }
+                }
+
+            }
+
             inline uint32_t calculate_h(const Node& node) const noexcept {
 
-                Vector2ui delta = node.pos.GetDelta(*this->target);
+                Vector2i delta {abs(node.pos.x - (*this->target).x), abs(node.pos.y - (*this->target).y)};
+
                 if (this->diagonal_move) {
                     // euclidean
                     return (10 * sqrt(pow(delta.x, 2) + pow(delta.y, 2)));
@@ -234,6 +280,24 @@ namespace boar {
                     return this->DIAGONAL_COST + curr.g;
                 }
             }
+
+            [[nodiscard]]
+            inline Node* get_node(Vector2ui& pos, bool root, Node* parent) noexcept {
+                
+                if (this->internal_nodes[pos.x][pos.y] != nullptr) {
+                    Node* node = this->internal_nodes[pos.x][pos.y];
+                    node->parent = parent;
+                    node->root = root;
+                    node->pos = pos;
+                    return node;
+                }
+                else {
+                    Node* new_node = new Node(pos, root, parent);
+                    this->internal_nodes[pos.x][pos.y] = new_node;
+                    return new_node;
+                }
+
+            }
     
             [[nodiscard]]
             inline bool validate_neighbor(Vector2i pos) const noexcept {
@@ -242,16 +306,6 @@ namespace boar {
                     return false;
                 }
                 return this->extern_validade_tile(pos);
-            }
-
-            [[nodiscard]]
-            inline Vector2i add_ui_i(const Vector2ui& a, const Vector2i& b) {
-                return Vector2i {(int)a.x + b.x, (int)a.y + b.y};
-            }
-            
-            [[nodiscard]]
-            inline Vector2ui add_i_ui(const Vector2ui& a, const Vector2i& b) {
-                return Vector2ui {a.x + (uint32_t)b.x, a.y + (uint32_t)b.y};
             }
     
     };

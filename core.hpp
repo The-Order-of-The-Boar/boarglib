@@ -26,22 +26,22 @@ namespace boar{
             ///////////////////////Mathematical Methods/////////////////////////////////
 
             //Returns diagonal distance between vectors
-            double DistanceTo(const Vector2& target) const noexcept {
-                const double DistX = (double)target.x - (double)this->x;
-                const double DistY = (double)target.y - (double)this->y;
-                return sqrt( pow(DistX,2)+pow(DistY,2) );
+            inline double DistanceTo(const Vector2& target) const noexcept {
+                // const double DistX = (double)target.x - (double)this->x;
+                // const double DistY = (double)target.y - (double)this->y;
+                return sqrt(pow(((double)target.x - (double)this->x), 2) + pow(((double)target.y - (double)this->y), 2));
             }
             
             // Returns the angle between two vectors in radians
-            double AngleTo(const Vector2& target) const noexcept {  
-                const double DistX = (double)target.x - (double)this->x;
-                const double DistY = (double)target.y - (double)this->y;
-                return atan(DistY/DistX);
+            inline double AngleTo(const Vector2& target) const noexcept {  
+                // const double DistX = (double)target.x - (double)this->x;
+                // const double DistY = (double)target.y - (double)this->y;
+                return atan(((double)target.y - (double)this->y) / ((double)target.x - (double)this->x));
             }
 
 
             //Returns the dot product of two vectors
-            double DotProduct(const Vector2& target) const noexcept {
+            inline double DotProduct(const Vector2& target) const noexcept {
                 return ((double)this->x * (double)target.x) + ((double)this->y * (double)target.y);
             }
 
@@ -58,10 +58,15 @@ namespace boar{
                 return Vector2<double>{this->x/magnitude, this->y/magnitude};
 
             }
+            
+            [[nodiscard]]
+            inline bool OrthogonalTo(const Vector2<Type>& other) const noexcept {
+                return (this->x == other.x || this->y == other.y);
+            }
 
             [[nodiscard]]
-            inline Vector2<Type> GetDelta(const Vector2<Type>& other) const noexcept {
-                return Vector2<Type> {abs(this->x - other.x), abs(this->y - other.y)};
+            inline bool DiagonalTo(const Vector2<Type>& other) const noexcept {
+                return (this->x != other.x && this->y != other.y);
             }
 
             ///////////////////////Operators/////////////////////////////////
@@ -134,12 +139,17 @@ namespace boar{
                 return Vector2<uint32_t>{(uint32_t)this->x, (uint32_t)this->y};
             }
 
+            inline operator Vector2<int64_t>() const noexcept {
+                return Vector2<int64_t>{(int64_t)this->x, (int64_t)this->y};
+            }
+
 
     };
 
     typedef Vector2<int32_t> Vector2i;
     typedef Vector2<uint32_t> Vector2ui;
     typedef Vector2<double>  Vector2f;
+    typedef Vector2<int64_t> Vector2li;
 
     class Angle{
 
