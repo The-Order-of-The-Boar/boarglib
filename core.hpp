@@ -143,6 +143,23 @@ namespace boar{
                 return Vector2<int64_t>{(int64_t)this->x, (int64_t)this->y};
             }
 
+            // SFML compatibility
+            #ifdef SFML_VECTOR2_HPP
+
+                inline operator sf::Vector2i() const noexcept {
+                    return sf::Vector2i{(int)this->x, (int)this->y};
+                }
+
+                inline operator sf::Vector2f() const noexcept {
+                    return sf::Vector2f{(float)this->x, (float)this->y};
+                }
+
+                inline operator sf::Vector2u() const noexcept {
+                    return sf::Vector2u{(unsigned int)this->x, (unsigned int)this->y};
+                }
+
+            #endif
+
 
     };
 
