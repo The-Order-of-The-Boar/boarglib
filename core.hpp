@@ -4,6 +4,8 @@
 
 #include <cmath>
 #include <functional>
+#include <cstdint>
+#include <type_traits>
 
 using std::sqrt;
 using std::pow;
@@ -12,7 +14,7 @@ using std::atan;
 namespace boar{
     
     //Mathematical Bidimensional Vector
-    template<typename Type>
+    template<typename Type, typename = std::enable_if_t<std::is_arithmetic_v<Type>>>
     class Vector2{
 
         public:
@@ -163,10 +165,10 @@ namespace boar{
 
     };
 
-    typedef Vector2<int32_t> Vector2i;
-    typedef Vector2<uint32_t> Vector2ui;
-    typedef Vector2<double>  Vector2f;
-    typedef Vector2<int64_t> Vector2li;
+    using Vector2i  = Vector2<int32_t>;
+    using Vector2ui = Vector2<uint32_t>;
+    using Vector2f  = Vector2<double>;
+    using Vector2li = Vector2<int64_t>;
 
     class Angle{
 
